@@ -44,8 +44,8 @@ import com.netflix.servo.monitor.Monitors;
  * <li>{@link com.netflix.dynomitemanager.sidecore.aws.UpdateSecuritySettings}:
  * In a multi-DC deployment, update the AWS security group (SG) inbound traffic
  * filters.
- * <li>{@link com.netflix.dynomitemanager.dynomite.DynomiteYamlTuneTask}: Write the
- * dynomite.yaml configuration file.
+ * <li>{@link com.netflix.dynomitemanager.dynomite.DynomiteYamlTuneTask}: Write
+ * the dynomite.yaml configuration file.
  * <li>{@link com.netflix.dynomitemanager.sidecore.backup.RestoreTask}: If
  * restore mode, then restore data from an object store (i.e. S3).
  * <li>{@link com.netflix.dynomitemanager.sidecore.storage.WarmBootstrapTask}:
@@ -66,125 +66,125 @@ import com.netflix.servo.monitor.Monitors;
  */
 @Singleton
 public class DynomiteManagerServer {
-    private final TaskScheduler scheduler;
-    private final IConfiguration config;
-    private final InstanceIdentity id;
-    private final Sleeper sleeper;
-    private final DynomiteYamlTuneTask tuneTask;
-    private final IDynomiteProcess dynProcess;
-    private final StorageProcessManager storageProcess;
-    private final InstanceState state;
-    private static final Logger logger = LoggerFactory.getLogger(DynomiteManagerServer.class);
+	private final TaskScheduler scheduler;
+	private final IConfiguration config;
+	private final InstanceIdentity id;
+	private final Sleeper sleeper;
+	private final DynomiteYamlTuneTask tuneTask;
+	private final IDynomiteProcess dynProcess;
+	private final StorageProcessManager storageProcess;
+	private final InstanceState state;
+	private static final Logger logger = LoggerFactory.getLogger(DynomiteManagerServer.class);
 
-    @Inject
-    public DynomiteManagerServer(IConfiguration config, TaskScheduler scheduler, InstanceIdentity id, Sleeper sleeper,
-	    DynomiteYamlTuneTask tuneTask, InstanceState state, IDynomiteProcess dynProcess, StorageProcessManager storageProcess) {
+	@Inject
+	public DynomiteManagerServer(IConfiguration config, TaskScheduler scheduler, InstanceIdentity id, Sleeper sleeper,
+			DynomiteYamlTuneTask tuneTask, InstanceState state, IDynomiteProcess dynProcess,
+			StorageProcessManager storageProcess) {
 
-	this.config = config;
-	this.scheduler = scheduler;
-	this.id = id;
-	this.sleeper = sleeper;
-	this.tuneTask = tuneTask;
-	this.state = state;
-	this.dynProcess = dynProcess;
-	this.storageProcess = storageProcess;
+		this.config = config;
+		this.scheduler = scheduler;
+		this.id = id;
+		this.sleeper = sleeper;
+		this.tuneTask = tuneTask;
+		this.state = state;
+		this.dynProcess = dynProcess;
+		this.storageProcess = storageProcess;
 
+		DefaultMonitorRegistry.getInstance().register(Monitors.newObjectMonitor(state));
 
-	DefaultMonitorRegistry.getInstance().register(Monitors.newObjectMonitor(state));
-
-    }
-
-    /**
-     * Start Dynomite Manager.
-     *
-     * @throws Exception
-     */
-    public void initialize() throws Exception {
-	if (id.getInstance().isOutOfService())
-	    return;
-
-	logger.info("Initializing Dynomite Manager now ...");
-
-	state.setSideCarProcessAlive(true);
-	state.setBootstrapStatus(Bootstrap.NOT_STARTED);
-
-	if (config.isDynomiteMultiDC()) {
-	    scheduler.runTaskNow(UpdateSecuritySettings.class);
-	    if (id.isReplace() || id.isTokenPregenerated()) {
-		long initTime = 100 + (int) (Math.random() * ((200 - 100) + 1));
-
-		logger.info("Sleeping " + initTime + "seconds -> a node is replaced or token is pregenerated.");
-		sleeper.sleep(initTime * 1000);
-	    } else if (UpdateSecuritySettings.firstTimeUpdated) {
-		logger.info("Sleeping 60 seconds -> first time security settings are updated");
-		sleeper.sleep(60 * 1000);
-	    }
-
-	    scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class,
-		    UpdateSecuritySettings.getTimer(id));
 	}
 
-	// scheduler.runTaskNow(TuneTask.class);
-	// Invoking the task directly as any errors in this task
-	// should not let Florida continue. However, we don't want to kill
-	// the Florida process, but, want it to be stuck.
-	logger.info("Running TuneTask and updating configuration.");
-	tuneTask.execute();
+	/**
+	 * Start Dynomite Manager.
+	 *
+	 * @throws Exception
+	 */
+	public void initialize() throws Exception {
+		if (id.getInstance().isOutOfService())
+			return;
 
-	// Determine if we need to restore from backup else start Dynomite.
-	if (config.isRestoreEnabled()) {
-	    logger.info("Restore is enabled.");
-	    scheduler.runTaskNow(RestoreTask.class); // restore from the AWS
-	    logger.info("Scheduled task " + RestoreTask.TaskName);
-	} else { // no restores needed
-	    logger.info("Restore is disabled.");
+		logger.info("Initializing Dynomite Manager now ...");
 
-	    // Bootstrapping only if this is a new node.
-	    if (config.isForceWarm() || (config.isWarmBootstrap() && id.isReplace())) {
-		if (config.isForceWarm()) {
-		    logger.info("Enforcing warm up.");
+		state.setSideCarProcessAlive(true);
+		state.setBootstrapStatus(Bootstrap.NOT_STARTED);
+
+		if (config.isDynomiteMultiDC()) {
+			scheduler.runTaskNow(UpdateSecuritySettings.class);
+			if (id.isReplace() || id.isTokenPregenerated()) {
+				long initTime = 100 + (int) (Math.random() * ((200 - 100) + 1));
+
+				logger.info("Sleeping " + initTime + "seconds -> a node is replaced or token is pregenerated.");
+				sleeper.sleep(initTime * 1000);
+			} else if (UpdateSecuritySettings.firstTimeUpdated) {
+				logger.info("Sleeping 60 seconds -> first time security settings are updated");
+				sleeper.sleep(60 * 1000);
+			}
+
+			scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class,
+					UpdateSecuritySettings.getTimer(id));
 		}
-		logger.info("Warm bootstrapping node. Scheduling BootstrapTask now!");
-		dynProcess.stop();
-		scheduler.runTaskNow(WarmBootstrapTask.class);
-	    } else {
-		logger.info("Cold bootstraping, launching storage process.");
-		storageProcess.start();
-		sleeper.sleepQuietly(1000); // 1s
-		logger.info("Launching dynomite process.");
-		dynProcess.start();
-		sleeper.sleepQuietly(1000); // 1s
-		scheduler.runTaskNow(ProxyAndStorageResetTask.class);
-	    }
+
+		// scheduler.runTaskNow(TuneTask.class);
+		// Invoking the task directly as any errors in this task
+		// should not let Florida continue. However, we don't want to kill
+		// the Florida process, but, want it to be stuck.
+		logger.info("Running TuneTask and updating configuration.");
+		tuneTask.execute();
+
+		// Determine if we need to restore from backup else start Dynomite.
+		if (config.isRestoreEnabled()) {
+			logger.info("Restore is enabled.");
+			scheduler.runTaskNow(RestoreTask.class); // restore from the AWS
+			logger.info("Scheduled task " + RestoreTask.TaskName);
+		} else { // no restores needed
+			logger.info("Restore is disabled.");
+
+			// Bootstrapping only if this is a new node.
+			if (config.isForceWarm() || (config.isWarmBootstrap() && id.isReplace())) {
+				if (config.isForceWarm()) {
+					logger.info("Enforcing warm up.");
+				}
+				logger.info("Warm bootstrapping node. Scheduling BootstrapTask now!");
+				dynProcess.stop();
+				scheduler.runTaskNow(WarmBootstrapTask.class);
+			} else {
+				logger.info("Cold bootstraping, launching storage process.");
+				storageProcess.start();
+				sleeper.sleepQuietly(1000); // 1s
+				logger.info("Launching dynomite process.");
+				dynProcess.start();
+				sleeper.sleepQuietly(1000); // 1s
+				scheduler.runTaskNow(ProxyAndStorageResetTask.class);
+			}
+		}
+
+		// Backup
+		if (config.isBackupEnabled() && config.getBackupHour() >= 0) {
+			scheduler.addTask(SnapshotTask.TaskName, SnapshotTask.class, SnapshotTask.getTimer(config));
+		}
+
+		// Metrics
+		scheduler.addTask(ServoMetricsTask.TaskName, ServoMetricsTask.class, ServoMetricsTask.getTimer());
+		scheduler.addTask(RedisInfoMetricsTask.TaskName, RedisInfoMetricsTask.class, RedisInfoMetricsTask.getTimer());
+
+		// Routine monitoring and restarting dynomite or storage processes as
+		// needed.
+		scheduler.addTask(ProcessMonitorTask.JOBNAME, ProcessMonitorTask.class, ProcessMonitorTask.getTimer());
+
+		logger.info("Starting task scheduler");
+		scheduler.start();
 	}
 
-	// Backup
-	if (config.isBackupEnabled() && config.getBackupHour() >= 0) {
-	    scheduler.addTask(SnapshotTask.TaskName, SnapshotTask.class, SnapshotTask.getTimer(config));
+	public InstanceIdentity getId() {
+		return id;
 	}
 
-	// Metrics
-	scheduler.addTask(ServoMetricsTask.TaskName, ServoMetricsTask.class, ServoMetricsTask.getTimer());
-	scheduler.addTask(RedisInfoMetricsTask.TaskName, RedisInfoMetricsTask.class, RedisInfoMetricsTask.getTimer());
+	public TaskScheduler getScheduler() {
+		return scheduler;
+	}
 
-	// Routine monitoring and restarting dynomite or storage processes as
-	// needed.
-	scheduler.addTask(ProcessMonitorTask.JOBNAME, ProcessMonitorTask.class, ProcessMonitorTask.getTimer());
-
-	logger.info("Starting task scheduler");
-	scheduler.start();
-    }
-
-    public InstanceIdentity getId() {
-	return id;
-    }
-
-    public TaskScheduler getScheduler() {
-	return scheduler;
-    }
-
-    public IConfiguration getConfiguration() {
-	return config;
-    }
+	public IConfiguration getConfiguration() {
+		return config;
+	}
 
 }

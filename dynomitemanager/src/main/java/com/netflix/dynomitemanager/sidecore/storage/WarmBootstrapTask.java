@@ -41,137 +41,150 @@ import java.util.List;
 @Singleton
 public class WarmBootstrapTask extends Task {
 
-    private static final Logger logger = LoggerFactory.getLogger(WarmBootstrapTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(WarmBootstrapTask.class);
 
-    public static final String JOBNAME = "Bootstrap-Task";
-    private final IDynomiteProcess dynProcess;
-    private final IStorageProxy storageProxy;
-    private final IAppsInstanceFactory appsInstanceFactory;
-    private final InstanceIdentity ii;
-    private final InstanceState state;
-    private final Sleeper sleeper;
-    private final StorageProcessManager storageProcessMgr;
+	public static final String JOBNAME = "Bootstrap-Task";
+	private final IDynomiteProcess dynProcess;
+	private final IStorageProxy storageProxy;
+	private final IAppsInstanceFactory appsInstanceFactory;
+	private final InstanceIdentity ii;
+	private final InstanceState state;
+	private final Sleeper sleeper;
+	private final StorageProcessManager storageProcessMgr;
 
-    @Inject
-    public WarmBootstrapTask(IConfiguration config, IAppsInstanceFactory appsInstanceFactory, InstanceIdentity id,
-	    IDynomiteProcess dynProcess, IStorageProxy storageProxy, InstanceState ss, Sleeper sleeper,
-	    StorageProcessManager storageProcessMgr) {
-	super(config);
-	this.dynProcess = dynProcess;
-	this.storageProxy = storageProxy;
-	this.appsInstanceFactory = appsInstanceFactory;
-	this.ii = id;
-	this.state = ss;
-	this.sleeper = sleeper;
-	this.storageProcessMgr = storageProcessMgr;
-    }
+	@Inject
+	public WarmBootstrapTask(IConfiguration config, IAppsInstanceFactory appsInstanceFactory, InstanceIdentity id,
+			IDynomiteProcess dynProcess, IStorageProxy storageProxy, InstanceState ss, Sleeper sleeper,
+			StorageProcessManager storageProcessMgr) {
+		super(config);
+		this.dynProcess = dynProcess;
+		this.storageProxy = storageProxy;
+		this.appsInstanceFactory = appsInstanceFactory;
+		this.ii = id;
+		this.state = ss;
+		this.sleeper = sleeper;
+		this.storageProcessMgr = storageProcessMgr;
+	}
 
-    public void execute() throws IOException {
-	logger.info("Running warmbootstrapping ...");
-	this.state.setFirstBootstrap(false);
-	this.state.setBootstrapTime(DateTime.now());
+	public void execute() throws IOException {
+		logger.info("Running warmbootstrapping ...");
+		this.state.setFirstBootstrap(false);
+		this.state.setBootstrapTime(DateTime.now());
 
-	// Just to be sure testing again
-	if (!state.isStorageAlive()) {
-	    // starting storage
-	    this.storageProcessMgr.start();
-	    logger.info("Redis is up ---> Starting warm bootstrap.");
+		// Just to be sure testing again
+		if (!state.isStorageAlive()) {
+			// starting storage
+			this.storageProcessMgr.start();
+			logger.info("Redis is up ---> Starting warm bootstrap.");
 
-	    // setting the status to bootstrapping
-	    this.state.setBootstrapping(true);
+			// setting the status to bootstrapping
+			this.state.setBootstrapping(true);
 
-	    // sleep to make sure storage process is up
-	    this.sleeper.sleepQuietly(5000);
+			// sleep to make sure storage process is up
+			this.sleeper.sleepQuietly(5000);
 
-	    String[] peers = getLocalPeersWithSameTokensRange();
+			String[] peers = getLocalPeersWithSameTokensRange();
+			if (peers!=null)
+				logger.info("Peers found: " + peers.length);
+			else
+				logger.info("NO Peers found! ");
+			
+			// try one node only for now
+			// TODOs: if this peer is not good, try the next one until we can
+			// get the data
+			if (peers != null && peers.length != 0) {
 
-	    // try one node only for now
-	    // TODOs: if this peer is not good, try the next one until we can
-	    // get the data
-	    if (peers != null && peers.length != 0) {
+				/**
+				 * Check the warm up status.
+				 */
+				Bootstrap bootstrap = this.storageProxy.warmUpStorage(peers);
+				if (bootstrap == Bootstrap.IN_SYNC_SUCCESS || bootstrap == Bootstrap.EXPIRED_BOOTSTRAPTIME_FAIL
+						|| bootstrap == Bootstrap.RETRIES_FAIL) {
+					// Since we are ready let us start Dynomite.
+					try {
+						this.dynProcess.start();
+					} catch (IOException ex) {
+						logger.error("Dynomite failed to start");
+					}
+					// Wait for 1 second before we check dynomite status
+					sleeper.sleepQuietly(1000);
+					if (this.dynProcess.dynomiteCheck()) {
+						logger.info("Dynomite health check passed");
 
-		/**
-		 * Check the warm up status.
-		 */
-		Bootstrap bootstrap = this.storageProxy.warmUpStorage(peers);
-		if (bootstrap == Bootstrap.IN_SYNC_SUCCESS || bootstrap == Bootstrap.EXPIRED_BOOTSTRAPTIME_FAIL
-			|| bootstrap == Bootstrap.RETRIES_FAIL) {
-		    // Since we are ready let us start Dynomite.
-		    try {
-			this.dynProcess.start();
-		    } catch (IOException ex) {
-			logger.error("Dynomite failed to start");
-		    }
-		    // Wait for 1 second before we check dynomite status
-		    sleeper.sleepQuietly(1000);
-		    if (this.dynProcess.dynomiteCheck()) {
-			logger.info("Dynomite health check passed");
+						// Set the state of bootstrap as successful.
+						this.state.setBootstrapStatus(bootstrap);
 
-			// Set the state of bootstrap as successful.
-			this.state.setBootstrapStatus(bootstrap);
+						logger.info("Set Dynomite to allow writes only!!!");
+						DynomiteRest.sendCommand("/state/writes_only");
 
-			logger.info("Set Dynomite to allow writes only!!!");
-			DynomiteRest.sendCommand("/state/writes_only");
+						logger.info("Stop Redis' Peer syncing!!!");
+						this.storageProxy.stopPeerSync();
 
-			logger.info("Stop Redis' Peer syncing!!!");
-			this.storageProxy.stopPeerSync();
+						logger.info("Set Dynomite to resuming state to allow writes and flush delayed writes");
+						DynomiteRest.sendCommand("/state/resuming");
 
-			logger.info("Set Dynomite to resuming state to allow writes and flush delayed writes");
-			DynomiteRest.sendCommand("/state/resuming");
+						// sleep 15s for the flushing to catch up
+						sleeper.sleepQuietly(15000);
+						logger.info("Set Dynomite to normal state");
+						DynomiteRest.sendCommand("/state/normal");
+					} else {
+						logger.error("Dynomite health check and restart attempts failed");
+					}
+				} else {
+					logger.error("Warm up failed: Stop Redis' Peer syncing!!!");
+					this.storageProxy.stopPeerSync();
+				}
 
-			// sleep 15s for the flushing to catch up
-			sleeper.sleepQuietly(15000);
-			logger.info("Set Dynomite to normal state");
-			DynomiteRest.sendCommand("/state/normal");
-		    } else {
-			logger.error("Dynomite health check and restart attempts failed");
-		    }
-		} else {
-		    logger.error("Warm up failed: Stop Redis' Peer syncing!!!");
-		    this.storageProxy.stopPeerSync();
+			} else {
+				logger.error("Unable to find any peer with the same token!");
+			}
+
+			// Performing a check of Dynomite after bootstrap is complete. This
+			// is important as there are
+			// cases that Dynomite reaches the 1M messages limit and is
+			// inaccessible after bootstrap.
+			//if (this.dynProcess.dynomiteCheck()) {
+			//	logger.error("Dynomite is up since warm up succeeded");
+			//}
+			
+			// finalizing bootstrap
+			this.state.setBootstrapping(false);
 		}
 
-	    } else {
-		logger.error("Unable to find any peer with the same token!");
-	    }
-
-	    // Performing a check of Dynomite after bootstrap is complete. This
-	    // is important as there are
-	    // cases that Dynomite reaches the 1M messages limit and is
-	    // inaccessible after bootstrap.
-	    if (this.dynProcess.dynomiteCheck()) {
-		logger.error("Dynomite is up since warm up succeeded");
-	    }
-	    // finalizing bootstrap
-	    this.state.setBootstrapping(false);
+		// Force to start dynomite and Redis no matter if bootstart works or not.
+		logger.info("Forcing Redis and Dynomite processs to start... ");
+		this.storageProcessMgr.start();
+		this.dynProcess.start();
+		logger.info("Redis and Dynomite Process should be started! ");
+		
 	}
-    }
 
-    @Override
-    public String getName() {
-	return JOBNAME;
-    }
-
-    public static TaskTimer getTimer() {
-	// run once every 10mins
-	return new SimpleTimer(JOBNAME, 10 * 60 * 1000);
-    }
-
-    private String[] getLocalPeersWithSameTokensRange() {
-	String tokens = ii.getTokens();
-
-	logger.info("Warming up node's own token(s) : " + tokens);
-	List<AppsInstance> instances = appsInstanceFactory.getLocalDCIds(config.getDynomiteClusterName(), config.getDataCenter());
-	List<String> peers = new ArrayList<String>();
-
-	for (AppsInstance ins : instances) {
-            logger.info("Instance's token(s): " + ins.getToken() + " id: " + ins.getInstanceId());
-	    if (!ins.getRack().equals(ii.getInstance().getRack()) && ins.getToken().equals(tokens)) {
-		peers.add(ins.getHostName());
-	    }
+	@Override
+	public String getName() {
+		return JOBNAME;
 	}
-	logger.info("peers size: " + peers.size());
-	return peers.toArray(new String[0]);
-    }
+
+	public static TaskTimer getTimer() {
+		// run once every 10mins
+		return new SimpleTimer(JOBNAME, 10 * 60 * 1000);
+	}
+
+	private String[] getLocalPeersWithSameTokensRange() {
+		String tokens = ii.getTokens();
+
+		logger.info("Warming up node's own token(s) : " + tokens);
+		List<AppsInstance> instances = appsInstanceFactory.getLocalDCIds(config.getDynomiteClusterName(),
+				config.getDataCenter());
+		List<String> peers = new ArrayList<String>();
+
+		for (AppsInstance ins : instances) {
+			logger.info("Instance's token(s): " + ins.getToken() + " id: " + ins.getInstanceId());
+			if (!ins.getRack().equals(ii.getInstance().getRack()) && ins.getToken().equals(tokens)) {
+				peers.add(ins.getHostName());
+			}
+		}
+		logger.info("peers size: " + peers.size());
+		return peers.toArray(new String[0]);
+	}
 
 }

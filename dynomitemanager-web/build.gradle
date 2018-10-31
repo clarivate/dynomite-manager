@@ -6,7 +6,23 @@ apply plugin: 'war'
 
 dependencies {
     compile project(':dynomitemanager')
+
+    
+    //
+    // Jetty 9 Deps
+    //
+    compile group: 'asm', name: 'asm', version: '3.1'
 }
 
+//
+// Jetty 9 Deps
+//
+configurations {
+    all*.exclude group: 'com.sun.jersey', module: 'jersey-core'
+    all*.exclude group: 'com.sun.jersey', module: 'jersey-client'
+    all*.exclude group: 'com.sun.jersey', module: 'jersey-server'
+    all*.exclude group: 'com.sun.jersey', module: 'jersey-servlet'
+}
+ 
 jettyRun.contextPath = ''
 jettyRunWar.contextPath = ''
