@@ -363,6 +363,8 @@ public class InstanceDataDAOCassandra {
 		logger.info("BOOT_CLUSTER = {}, KS_NAME = {}", BOOT_CLUSTER, KS_NAME);
 		return new AstyanaxContext.Builder().forCluster(BOOT_CLUSTER).forKeyspace(KS_NAME)
 				.withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
+			            .setTargetCassandraVersion("1.2")
+			            .setCqlVersion("3.0.0")
 						.setDiscoveryType(NodeDiscoveryType.DISCOVERY_SERVICE))
 				.withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("MyConnectionPool")
 						.setMaxConnsPerHost(3).setPort(thriftPortForAstyanax))
@@ -377,6 +379,8 @@ public class InstanceDataDAOCassandra {
 		logger.info("BOOT_CLUSTER = {}, KS_NAME = {}", BOOT_CLUSTER, KS_NAME);
 		return new AstyanaxContext.Builder().forCluster(BOOT_CLUSTER).forKeyspace(KS_NAME)
 				.withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
+			            .setTargetCassandraVersion("1.2")
+			            .setCqlVersion("3.0.0")
 						.setDiscoveryType(NodeDiscoveryType.DISCOVERY_SERVICE)
 						.setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN))
 				.withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("MyConnectionPool")
