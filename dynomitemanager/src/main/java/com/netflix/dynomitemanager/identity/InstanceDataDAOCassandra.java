@@ -44,13 +44,13 @@ import org.slf4j.LoggerFactory;
 public class InstanceDataDAOCassandra {
 	private static final Logger logger = LoggerFactory.getLogger(InstanceDataDAOCassandra.class);
 
-	private String CN_ID = "Id";
-	private String CN_APPID = "appId";
-	private String CN_AZ = "availabilityZone";
+	private String CN_ID = "id";
+	private String CN_APPID = "appid";
+	private String CN_AZ = "availabilityzone";
 	private String CN_DC = "datacenter";
-	private String CN_INSTANCEID = "instanceId";
+	private String CN_INSTANCEID = "instanceid";
 	private String CN_HOSTNAME = "hostname";
-	private String CN_EIP = "elasticIP";
+	private String CN_EIP = "elasticip";
 	private String CN_TOKEN = "token";
 	private String CN_LOCATION = "location";
 	private String CN_VOLUME_PREFIX = "ssVolumes";
@@ -277,7 +277,7 @@ public class InstanceDataDAOCassandra {
 		try {
 
 			final String selectClause = String
-					.format("SELECT * FROM %s USING CONSISTENCY LOCAL_QUORUM WHERE %s = '%s' ",
+					.format("SELECT * FROM %s WHERE %s = '%s' ",
 							CF_NAME_TOKENS, CN_APPID, app);
 			logger.debug(selectClause);
 
@@ -299,7 +299,7 @@ public class InstanceDataDAOCassandra {
 	public String findKey(String app, String id, String location, String datacenter) {
 		try {
 			final String selectClause = String
-					.format("SELECT * FROM %s USING CONSISTENCY LOCAL_QUORUM WHERE %s = '%s' and %s = '%s' and %s = '%s' and %s = '%s' ",
+					.format("SELECT * FROM %s WHERE %s = '%s' and %s = '%s' and %s = '%s' and %s = '%s' ",
 							"tokens", CN_APPID, app, CN_ID, id, CN_LOCATION, location,
 							CN_DC, datacenter);
 			logger.info(selectClause);
@@ -365,6 +365,7 @@ public class InstanceDataDAOCassandra {
 				.withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
 			            .setTargetCassandraVersion("1.2")
 			            .setCqlVersion("3.0.0")
+			            .setDefaultReadConsistencyLevel(ConsistencyLevel.CL_LOCAL_QUORUM)
 						.setDiscoveryType(NodeDiscoveryType.DISCOVERY_SERVICE))
 				.withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("MyConnectionPool")
 						.setMaxConnsPerHost(3).setPort(thriftPortForAstyanax))
@@ -381,6 +382,7 @@ public class InstanceDataDAOCassandra {
 				.withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
 			            .setTargetCassandraVersion("1.2")
 			            .setCqlVersion("3.0.0")
+			            .setDefaultReadConsistencyLevel(ConsistencyLevel.CL_LOCAL_QUORUM)
 						.setDiscoveryType(NodeDiscoveryType.DISCOVERY_SERVICE)
 						.setConnectionPoolType(ConnectionPoolType.ROUND_ROBIN))
 				.withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("MyConnectionPool")
