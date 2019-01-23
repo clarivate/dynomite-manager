@@ -44,13 +44,13 @@ import org.slf4j.LoggerFactory;
 public class InstanceDataDAOCassandra {
 	private static final Logger logger = LoggerFactory.getLogger(InstanceDataDAOCassandra.class);
 
-	private String CN_ID = "Id";
-	private String CN_APPID = "appId";
-	private String CN_AZ = "availabilityZone";
+	private String CN_ID = "id";
+	private String CN_APPID = "appid";
+	private String CN_AZ = "availabilityzone";
 	private String CN_DC = "datacenter";
-	private String CN_INSTANCEID = "instanceId";
+	private String CN_INSTANCEID = "instanceid";
 	private String CN_HOSTNAME = "hostname";
-	private String CN_EIP = "elasticIP";
+	private String CN_EIP = "elasticip";
 	private String CN_TOKEN = "token";
 	private String CN_LOCATION = "location";
 	private String CN_VOLUME_PREFIX = "ssVolumes";
