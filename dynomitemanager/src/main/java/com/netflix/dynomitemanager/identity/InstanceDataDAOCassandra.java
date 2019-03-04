@@ -299,7 +299,7 @@ public class InstanceDataDAOCassandra {
 	public String findKey(String app, String id, String location, String datacenter) {
 		try {
 			final String selectClause = String
-					.format("SELECT * FROM %s WHERE %s = '%s' and %s = '%s' and %s = '%s' and %s = '%s' ",
+					.format("SELECT * FROM %s WHERE %s = '%s' and %s = '%s' and %s = '%s' and %s = '%s' ALLOW FILTERING",
 							"tokens", CN_APPID, app, CN_ID, id, CN_LOCATION, location,
 							CN_DC, datacenter);
 			logger.info(selectClause);
