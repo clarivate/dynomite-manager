@@ -57,7 +57,7 @@ public class RedisStorageProxy implements IStorageProxy {
 	private static final String DYNO_REDIS = "redis";
 	private static final String REDIS_ADDRESS = "127.0.0.1";
 	private static final int REDIS_PORT = 22122;
-	private static final long GB_2_IN_KB = 2L * 1024L * 1024L;
+	private static final long GB_3_IN_KB = 3L * 1024L * 1024L;
 	private static final String PROC_MEMINFO_PATH = "/proc/meminfo";
 	private static final Pattern MEMINFO_PATTERN = Pattern.compile("MemTotal:\\s*([0-9]*)");
 
@@ -676,7 +676,7 @@ public class RedisStorageProxy implements IStorageProxy {
 		// that we deal with.
 		long totalMem = getTotalAvailableSystemMemory();
 		long storeMaxMem = (totalMem * memPct) / 100;
-		storeMaxMem = ((totalMem - storeMaxMem) > GB_2_IN_KB) ? storeMaxMem : (totalMem - GB_2_IN_KB);
+		storeMaxMem = Math.max(0L,((totalMem - storeMaxMem) > GB_3_IN_KB) ? storeMaxMem : (totalMem - GB_3_IN_KB));
 
 		logger.info(String.format("totalMem: %s setting storage max mem to %s", totalMem, storeMaxMem));
 		return storeMaxMem;
