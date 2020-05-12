@@ -2,11 +2,12 @@ buildscript {
     repositories { jcenter() }
     dependencies {
         classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:latest.release'
+//        classpath "org.akhikhl.gretty:gretty:latest.release"
     }
 }
 
 plugins {
-    id 'nebula.netflixoss' version '3.3.0'
+    id 'nebula.netflixoss' version '4.0.2'
 }
 
 allprojects {
@@ -20,8 +21,13 @@ ext.githubProjectName = 'dynomite-manager'
 subprojects {
     apply plugin: 'nebula.netflixoss'
     apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
     apply plugin: 'nebula.provided-base'
     apply plugin: 'nebula.dependency-lock'
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
 
     test {
         testLogging {
@@ -68,7 +74,8 @@ subprojects {
         compile "org.slf4j:slf4j-log4j12:1.6.1"
         compile "redis.clients:jedis:2.7.3"
         compile "junit:junit:4.11"
-        provided "javax.servlet:servlet-api:2.5"
+        //provided "javax.servlet:servlet-api:2.5"
+        compileOnly "javax.servlet:servlet-api:2.5"
 
         //Netflix
         compile "com.netflix.servo:servo-core:0.5.5"
@@ -77,6 +84,9 @@ subprojects {
         compile('com.netflix.astyanax:astyanax:2.0.1') {
             exclude module: 'junit'
         }
+        compile 'com.datastax.oss:java-driver-core:4.1.0'
+        compile 'com.datastax.oss:java-driver-query-builder:4.1.0'
+        compile 'software.aws.mcs:aws-sigv4-auth-cassandra-java-driver-plugin:4.0.2'
 
         //Google general and Cloud Storage apis
         compile "com.google.guava:guava:19.0"

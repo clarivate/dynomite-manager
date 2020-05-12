@@ -65,12 +65,12 @@ public class CassandraLocalHostsSupplier implements HostSupplier {
 				throw new RuntimeException(errMsg);
 
 			for (String cassHost : cassHostnames) {
-				hosts.add(new Host(cassHost, config.getCassandraThriftPort()));
+				hosts.add(new Host(cassHost, config.getCassandraPort()));
 			}
 		} else {
             // This branch will never be reached in production. It is only used by CassandraHostsSupplierTest.
             // TODO: Remove this condition and rewrite the test.
-			hosts.add(new Host(LOCAL_ADDRESS, config.getCassandraThriftPort()).setRack("localdc"));
+			hosts.add(new Host(LOCAL_ADDRESS, config.getCassandraPort()).setRack("localdc"));
 		}
 
 		return new Supplier<List<Host>>() {

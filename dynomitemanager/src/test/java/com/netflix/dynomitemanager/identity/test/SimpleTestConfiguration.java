@@ -226,8 +226,13 @@ public class SimpleTestConfiguration implements IConfiguration {
 	}
 
 	@Override
-	public int getCassandraThriftPort() {
+	public int getCassandraPort() {
 		return 9911;
+	}
+
+	@Override
+	public boolean isAmazonKeyspacesSupplierEnabled() {
+		return false;
 	}
 
 	@Override

@@ -37,7 +37,7 @@ public class CassandraLocalHostsSupplierTest {
 		List<Host> hosts = lhs.getSupplier("DmClusterTest").get();
 		Assert.assertNotNull(hosts);
 		Assert.assertTrue(hosts.get(0) != null);
-        Assert.assertThat(hosts.get(0).getPort(), is(9160));
+		Assert.assertThat(hosts.get(0).getPort(), is(9042));
 		Assert.assertTrue("localdc".equals(hosts.get(0).getRack()));
 		Assert.assertTrue("127.0.0.1".equals(hosts.get(0).getIpAddress()));
 	}

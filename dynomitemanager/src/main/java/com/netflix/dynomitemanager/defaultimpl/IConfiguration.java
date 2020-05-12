@@ -294,11 +294,11 @@ public interface IConfiguration {
     public String getCassandraKeyspaceName();
 
     /**
-     * Get the Cassandra thrift port. This port is used by Astyanax.
+     * Get the Cassandra port. This port is used by Astyanax.
      *
-     * @return the Cassandra thrift port
+     * @return the Cassandra port
      */
-    public int getCassandraThriftPort();
+    public int getCassandraPort();
 
     /**
      * Get a comma separated list of Cassandra hostnames or ip addresses. This list of hosts are the Cassandra seeds.
@@ -306,6 +306,8 @@ public interface IConfiguration {
      * @return a comma separated list of Cassandra hostnames or ip addresses
      */
     public String getCassandraSeeds();
+
+    public boolean isAmazonKeyspacesSupplierEnabled();
 
     // Data store (aka backend)
     // ========================
