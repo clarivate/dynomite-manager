@@ -1,5 +1,8 @@
 buildscript {
-    repositories { jcenter() }
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
     dependencies {
         classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:latest.release'
 //        classpath "org.akhikhl.gretty:gretty:latest.release"
@@ -52,9 +55,9 @@ subprojects {
 
         compile "com.google.inject:guice:3.0"
         compile "com.google.inject.extensions:guice-servlet:3.0"
-        compile "com.sun.jersey.contribs:jersey-guice:1.9.1"
-        compile "com.sun.jersey:jersey-core:1.17.1"
-        compile "com.sun.jersey:jersey-server:1.17.1"
+        compile "com.sun.jersey.contribs:jersey-guice:1.19.1"
+        compile "com.sun.jersey:jersey-core:1.19.4"
+        compile "com.sun.jersey:jersey-server:1.19.4"
         compile "javax.ws.rs:jsr311-api:1.1.1"
         compile "org.apache.cassandra:cassandra-thrift:1.2.11"
         compile "org.quartz-scheduler:quartz:1.7.3"
@@ -86,7 +89,7 @@ subprojects {
         }
         compile 'com.datastax.oss:java-driver-core:4.1.0'
         compile 'com.datastax.oss:java-driver-query-builder:4.1.0'
-        compile 'software.aws.mcs:aws-sigv4-auth-cassandra-java-driver-plugin:4.0.2'
+        compile group: 'software.aws.mcs', name: 'aws-sigv4-auth-cassandra-java-driver-plugin', version: '4.0.2'
 
         //Google general and Cloud Storage apis
         compile "com.google.guava:guava:19.0"
