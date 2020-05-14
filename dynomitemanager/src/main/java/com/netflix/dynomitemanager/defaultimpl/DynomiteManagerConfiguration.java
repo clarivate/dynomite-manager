@@ -176,6 +176,8 @@ public class DynomiteManagerConfiguration implements IConfiguration {
 	private static final String CONFIG_CASSANDRA_KEYSPACE_NAME = CASSANDRA_PROPS + ".keyspace.name";
 	private static final String CONFIG_CASSANDRA_SEEDS = CASSANDRA_PROPS + ".seeds";
 	private static final String CONFIG_CASSANDRA_PORT = CASSANDRA_PROPS + ".port";
+	private static final String CONFIG_CASSANDRA_DATACENTER = CASSANDRA_PROPS + ".datacenter";
+	private static final String CONFIG_CASSANDRA_AMAZONKEYSPACES_ENABLED = CASSANDRA_PROPS + ".amazonKeyspaces.enabled";
 
 	// Data store (aka backend)
 	// ========================
@@ -829,7 +831,13 @@ public class DynomiteManagerConfiguration implements IConfiguration {
 
 	@Override
 	public boolean isAmazonKeyspacesSupplierEnabled() {
-		return false;
+		return getBooleanProperty("DM_CASSANDRA_AMAZONKEYSPACES_ENABLED",
+				CONFIG_CASSANDRA_AMAZONKEYSPACES_ENABLED, false);
+	}
+
+	@Override
+	public String getCassandraDatacenter() {
+		return getStringProperty("DM_CASSANDRA_DATACENTER", CONFIG_CASSANDRA_DATACENTER, "us-west-2");
 	}
 
 	// Data store (aka backend)

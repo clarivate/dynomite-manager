@@ -251,6 +251,9 @@ public class SimpleTestConfiguration implements IConfiguration {
 	}
 
 	@Override
+	public String getCassandraDatacenter() { return "dc1";	}
+
+	@Override
 	public String getBackupSchedule() {
 		return null;
 	}

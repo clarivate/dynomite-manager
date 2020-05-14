@@ -236,6 +236,11 @@ public class BlankConfiguration implements IConfiguration {
     }
 
     @Override
+    public String getCassandraDatacenter() {
+      return null;
+    }
+
+    @Override
     public String getCassandraKeyspaceName() {
 	return null;
     }

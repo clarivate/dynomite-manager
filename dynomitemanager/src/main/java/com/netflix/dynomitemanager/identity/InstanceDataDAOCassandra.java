@@ -436,7 +436,7 @@ public class InstanceDataDAOCassandra {
 	}
 
 	private CqlSession init() {
-		final String datacenter = config.getRack();
+		final String datacenter = config.getCassandraDatacenter();
 		logger.info("cassandra datacenter: " + datacenter);
 		logger.info("cassandra keyspace: " + KS_NAME);
 		logger.info("cassandra port: " + cassandraPort);
