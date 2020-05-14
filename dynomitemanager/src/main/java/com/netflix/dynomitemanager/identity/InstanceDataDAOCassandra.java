@@ -24,22 +24,22 @@ import com.google.inject.Singleton;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
-import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
-import com.netflix.astyanax.connectionpool.OperationResult;
-import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
-import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
-import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
-import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
-import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
-import com.netflix.astyanax.model.*;
-import com.netflix.astyanax.serializers.StringSerializer;
-import com.netflix.astyanax.thrift.ThriftFamilyFactory;
+//import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
+//import com.netflix.astyanax.connectionpool.OperationResult;
+//import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
+//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
+//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
+//import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
+//import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
+//import com.netflix.astyanax.model.*;
+//import com.netflix.astyanax.serializers.StringSerializer;
+//import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import software.aws.mcs.auth.SigV4AuthProvider;
 
-import com.netflix.astyanax.AstyanaxContext;
-import com.netflix.astyanax.ColumnListMutation;
-import com.netflix.astyanax.Keyspace;
-import com.netflix.astyanax.MutationBatch;
+//import com.netflix.astyanax.AstyanaxContext;
+//import com.netflix.astyanax.ColumnListMutation;
+//import com.netflix.astyanax.Keyspace;
+//import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.Host;
 //import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 //import com.netflix.astyanax.connectionpool.OperationResult;
@@ -141,7 +141,7 @@ public class InstanceDataDAOCassandra {
 			this.bootSession.execute(
 					insertInto(CF_NAME_TOKENS)
 							.value(CN_KEY, literal(key))
-							.value(CN_ID, literal(String.valueOf(instance.getId())))
+							.value(CN_ID, literal(instance.getId()))
 							.value(CN_APPID, literal(instance.getApp()))
 							.value(CN_AZ, literal(instance.getZone()))
 							.value(CN_DC, literal(instance.getDatacenter()))
@@ -291,6 +291,8 @@ public class InstanceDataDAOCassandra {
 	private void releaseLock(AppsInstance instance) throws Exception {
 		final String choosingKey = getChoosingKey(instance);
 
+		logger.info("releasing lock " + choosingKey);
+
 		this.bootSession.execute(
 				deleteFrom(CF_NAME_LOCKS)
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
@@ -435,6 +437,9 @@ public class InstanceDataDAOCassandra {
 
 	private CqlSession init() {
 		final String datacenter = config.getRack();
+		logger.info("cassandra datacenter: " + datacenter);
+		logger.info("cassandra keyspace: " + KS_NAME);
+		logger.info("cassandra port: " + cassandraPort);
 
 		if (config.isAmazonKeyspacesSupplierEnabled()) {
 			List<InetSocketAddress> contactPoints =
@@ -464,7 +469,8 @@ public class InstanceDataDAOCassandra {
 		final List<InetSocketAddress> contactPoints = new ArrayList<>();
 		for (Host host : supplier.get()) {
 			int port = host.getPort() > 0 ? host.getPort() : cassandraPort;
-			contactPoints.add(new InetSocketAddress(host.getName(), port));
+			contactPoints.add(new InetSocketAddress(host.getIpAddress(), port));
+			logger.info("added contact point: " + host.getIpAddress());
 		}
 
 		return CqlSession.builder()
