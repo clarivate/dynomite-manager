@@ -14,6 +14,7 @@ package com.netflix.dynomitemanager.identity;
 
 import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -66,6 +67,7 @@ import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.deleteFrom;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.now;
+import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.toTimestamp;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.selectFrom;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.update;
 
@@ -86,6 +88,7 @@ public class InstanceDataDAOCassandra {
 	private String CN_LOCATION = "location";
 	private String CN_VOLUME_PREFIX = "ssVolumes";
 	private String CN_UPDATETIME = "updatetime";
+	private String CN_CREATED = "created";
 	private static final String CF_NAME_TOKENS = "tokens";
 	private static final String CF_NAME_LOCKS = "locks";
 
@@ -223,13 +226,29 @@ public class InstanceDataDAOCassandra {
 	}
 
 	private long rowCount(final String table, final String keyColumn, final String key) {
-		final Row row = this.bootSession.execute(
+		List<Row> rows = this.bootSession.execute(
 				selectFrom(table)
-						.countAll()
+						.all()
 						.whereColumn(keyColumn).isEqualTo(literal(key))
 						.build()
+		).all();
+		return rows != null ? rows.size() : 0;
+	}
+
+	private void deleteExpired(AppsInstance instance, String key, int seconds) {
+		Row row = this.bootSession.execute(
+				"select toTimestamp(now()) from system.local"
 		).one();
-		return row != null ? row.getLong(0) : 0;
+		Instant expiredTime = row.getInstant(0).minusSeconds(seconds);
+		logger.info("deleting lock on key " + key + ", expired after " + expiredTime.toString());
+		this.bootSession.execute(
+				deleteFrom(CF_NAME_LOCKS)
+						.whereColumn(CN_KEY).isEqualTo(literal(key))
+						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
+						.whereColumn(CN_CREATED).isLessThanOrEqualTo((literal(expiredTime.toString())))
+						.build()
+						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+		);
 	}
 
 	/*
@@ -240,11 +259,13 @@ public class InstanceDataDAOCassandra {
 	 */
 	private void getLock(AppsInstance instance) throws Exception {
 		final String choosingKey = getChoosingKey(instance);
-
+		deleteExpired(instance, choosingKey, 6);
+		Thread.sleep(100);
 		this.bootSession.execute(
 				insertInto(CF_NAME_LOCKS)
 						.value(CN_KEY, literal(choosingKey))
 						.value(CN_INSTANCEID, literal(instance.getInstanceId()))
+						.value(CN_CREATED,toTimestamp(now()))
 						.usingTtl(6)
 						.build()
 						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
@@ -256,6 +277,7 @@ public class InstanceDataDAOCassandra {
 					deleteFrom(CF_NAME_LOCKS)
 							.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
+							.value(CN_CREATED,toTimestamp(now()))
 							.build()
 							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
@@ -263,6 +285,8 @@ public class InstanceDataDAOCassandra {
 		}
 
 		final String lockKey = getLockingKey(instance);
+		deleteExpired(instance, lockKey, 600);
+		Thread.sleep(100);
 		final List<Row> preCheck = fetchRows(CF_NAME_LOCKS, CN_KEY, lockKey);
 		if (preCheck.size() > 0) {
 			boolean found = false;
@@ -281,7 +305,7 @@ public class InstanceDataDAOCassandra {
 				insertInto(CF_NAME_LOCKS)
 						.value(CN_KEY, literal(lockKey))
 						.value(CN_INSTANCEID, literal(instance.getInstanceId()))
-						.usingTtl(600)
+						.value(CN_CREATED,toTimestamp(now()))
 						.build()
 						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
@@ -452,6 +476,7 @@ public class InstanceDataDAOCassandra {
 		logger.info("cassandra datacenter: " + datacenter);
 		logger.info("cassandra keyspace: " + KS_NAME);
 		logger.info("cassandra port: " + cassandraPort);
+		logger.info("Amazon Keyspaces enabled:" + String.valueOf(config.isAmazonKeyspacesSupplierEnabled()));
 
 		if (config.isAmazonKeyspacesSupplierEnabled()) {
 			List<InetSocketAddress> contactPoints =
