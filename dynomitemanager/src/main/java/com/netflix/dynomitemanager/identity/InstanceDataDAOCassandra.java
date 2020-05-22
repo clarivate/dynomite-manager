@@ -490,23 +490,24 @@ public class InstanceDataDAOCassandra {
 		logger.info("cassandra datacenter: " + datacenter);
 		logger.info("cassandra keyspace: " + KS_NAME);
 		logger.info("cassandra port: " + cassandraPort);
-		logger.info("Amazon Keyspaces enabled:" + String.valueOf(config.isAmazonKeyspacesSupplierEnabled()));
+		logger.info("Amazon Keyspaces enabled:" + config.isAmazonKeyspacesSupplierEnabled());
 
 		if (config.isAmazonKeyspacesSupplierEnabled()) {
-			List<InetSocketAddress> contactPoints =
-					Collections.singletonList(
-							InetSocketAddress.createUnresolved(config.getCassandraSeeds(), config.getCassandraPort()));
+			String endpoint = "cassandra." + datacenter + ".amazonaws.com";
+			SigV4AuthProvider provider = new SigV4AuthProvider(datacenter);
+			List<InetSocketAddress> contactPoints = Collections.singletonList(new InetSocketAddress(endpoint, cassandraPort));
 			try {
-				return CqlSession.builder()
-						.addContactPoints(contactPoints)
-						.withSslContext(SSLContext.getDefault())
-						.withAuthProvider(new SigV4AuthProvider(datacenter))
-						.withLocalDatacenter(datacenter)
-						.withKeyspace(KS_NAME)
-						.build();
+				CqlSession session = CqlSession.builder()
+						           					.addContactPoints(contactPoints)
+						           					.withSslContext(SSLContext.getDefault())
+						           					.withAuthProvider(provider)
+						           					.withLocalDatacenter(datacenter)
+						           					.withKeyspace(KS_NAME)
+						           					.build();
+ 				return session;
 			}
-			catch (NoSuchAlgorithmException e) {
-				logger.error("Unsupprted algorithm: ", e.getMessage());
+			catch (Exception e) {
+				logger.error("error creating cqlsession: ", e);
 				throw new RuntimeException(e);
 			}
 		}
