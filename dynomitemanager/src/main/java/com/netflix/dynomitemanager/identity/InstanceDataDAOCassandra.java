@@ -155,7 +155,6 @@ public class InstanceDataDAOCassandra {
 							//.value(CN_VOLUMES, literal(formatVolumes(instance.getVolumes())))
 							.value(CN_UPDATETIME, now())
 							.build()
-							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 		} catch (final Exception e) {
 			logger.error(e.getMessage(), e);
@@ -192,7 +191,6 @@ public class InstanceDataDAOCassandra {
 							.setColumn(CN_UPDATETIME, now())
 							.whereColumn(CN_KEY).isEqualTo(literal(key))
 							.build()
-							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 		} catch (final Exception e) {
 			logger.error(e.getMessage(), e);
@@ -257,7 +255,6 @@ public class InstanceDataDAOCassandra {
 							.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 							.build()
-							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 			throw new Exception(String.format("More than 1 contender for lock %s %d", choosingKey, count));
 		}
@@ -304,7 +301,6 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
-						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 	}
 
@@ -330,7 +326,6 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(lockKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
-						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 
 		final String choosingKey = getChoosingKey(instance);
@@ -339,7 +334,6 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
-						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 	}
 
