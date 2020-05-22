@@ -226,8 +226,13 @@ public class SimpleTestConfiguration implements IConfiguration {
 	}
 
 	@Override
-	public int getCassandraThriftPort() {
+	public int getCassandraPort() {
 		return 9911;
+	}
+
+	@Override
+	public boolean isAmazonKeyspacesSupplierEnabled() {
+		return false;
 	}
 
 	@Override
@@ -244,6 +249,9 @@ public class SimpleTestConfiguration implements IConfiguration {
 	public String getCassandraClusterName() {
 		return "DynomiteManagerClusterTest";
 	}
+
+	@Override
+	public String getCassandraDatacenter() { return "dc1";	}
 
 	@Override
 	public String getBackupSchedule() {

@@ -515,8 +515,8 @@ public class DynomiteManagerConfigurationTest {
     }
 
     @Test
-    public void testGetCassandraThriftPort() throws Exception {
-        Assert.assertThat("Cassandra thrift port = default", conf.getCassandraThriftPort(), is(9160));
+    public void testGetCassandraPort() throws Exception {
+        Assert.assertThat("Cassandra thrift port = default", conf.getCassandraPort(), is(9042));
 
         new MockUp<System>() {
             @Mock
@@ -524,7 +524,7 @@ public class DynomiteManagerConfigurationTest {
                 return "9999";
             }
         };
-        Assert.assertThat("Cassandra thrift port = env var", conf.getCassandraThriftPort(), is(9999));
+        Assert.assertThat("Cassandra thrift port = env var", conf.getCassandraPort(), is(9999));
 
         new MockUp<System>() {
             @Mock
@@ -532,7 +532,7 @@ public class DynomiteManagerConfigurationTest {
                 return "not-a-number";
             }
         };
-        Assert.assertThat("Cassandra thrift port = default", conf.getCassandraThriftPort(), is(9160));
+        Assert.assertThat("Cassandra thrift port = default", conf.getCassandraPort(), is(9042));
     }
 
     // Data store (aka backend)
