@@ -1,8 +1,8 @@
 {
     "compile": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -45,16 +45,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -97,8 +97,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.quartz-scheduler:quartz": {
             "locked": "1.7.3",
@@ -127,8 +127,8 @@
     },
     "compileClasspath": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -171,16 +171,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -223,8 +223,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.quartz-scheduler:quartz": {
             "locked": "1.7.3",
@@ -253,8 +253,8 @@
     },
     "compileOnly": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -297,16 +297,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -349,8 +349,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.quartz-scheduler:quartz": {
             "locked": "1.7.3",
@@ -379,8 +379,8 @@
     },
     "default": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -423,16 +423,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -475,8 +475,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.quartz-scheduler:quartz": {
             "locked": "1.7.3",
@@ -515,8 +515,8 @@
     },
     "runtime": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -559,16 +559,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -611,8 +611,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.quartz-scheduler:quartz": {
             "locked": "1.7.3",
@@ -645,8 +645,8 @@
     },
     "test": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -689,16 +689,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -741,8 +741,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.jmockit:jmockit": {
             "locked": "1.28",
@@ -779,8 +779,8 @@
     },
     "testCompile": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -823,16 +823,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -875,8 +875,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.jmockit:jmockit": {
             "locked": "1.28",
@@ -909,8 +909,8 @@
     },
     "testCompileClasspath": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -953,16 +953,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -1005,8 +1005,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.jmockit:jmockit": {
             "locked": "1.28",
@@ -1039,8 +1039,8 @@
     },
     "testCompileOnly": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -1083,16 +1083,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -1135,8 +1135,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.jmockit:jmockit": {
             "locked": "1.28",
@@ -1169,8 +1169,8 @@
     },
     "testRuntime": {
         "com.amazonaws:aws-java-sdk": {
-            "locked": "1.10.59",
-            "requested": "1.10.59"
+            "locked": "1.11.256",
+            "requested": "1.11.256"
         },
         "com.google.code.findbugs:jsr305": {
             "locked": "1.3.9",
@@ -1213,16 +1213,16 @@
             "requested": "0.9.5"
         },
         "com.sun.jersey.contribs:jersey-guice": {
-            "locked": "1.9.1",
-            "requested": "1.9.1"
+            "locked": "1.19.1",
+            "requested": "1.19.1"
         },
         "com.sun.jersey:jersey-core": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "com.sun.jersey:jersey-server": {
-            "locked": "1.17.1",
-            "requested": "1.17.1"
+            "locked": "1.19.4",
+            "requested": "1.19.4"
         },
         "commons-cli:commons-cli": {
             "locked": "1.3.1",
@@ -1265,8 +1265,8 @@
             "requested": "1.2.11"
         },
         "org.apache.httpcomponents:httpcore": {
-            "locked": "4.3.3",
-            "requested": "4.2.2"
+            "locked": "4.4.6",
+            "requested": "4.4.6"
         },
         "org.jmockit:jmockit": {
             "locked": "1.28",

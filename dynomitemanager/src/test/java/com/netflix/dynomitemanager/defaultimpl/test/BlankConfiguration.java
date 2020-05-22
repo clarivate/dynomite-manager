@@ -226,8 +226,18 @@ public class BlankConfiguration implements IConfiguration {
     }
 
     @Override
-    public int getCassandraThriftPort() {
-        return 9160;
+    public int getCassandraPort() {
+        return 9042;
+    }
+
+    @Override
+    public boolean isAmazonKeyspacesSupplierEnabled() {
+      return false;
+    }
+
+    @Override
+    public String getCassandraDatacenter() {
+      return null;
     }
 
     @Override
