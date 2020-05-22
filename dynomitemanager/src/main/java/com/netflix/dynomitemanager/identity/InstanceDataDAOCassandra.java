@@ -235,20 +235,37 @@ public class InstanceDataDAOCassandra {
 		return rows != null ? rows.size() : 0;
 	}
 
-	private void deleteExpired(AppsInstance instance, String key, int seconds) {
+	private void deleteExpired(AppsInstance instance, String key, int seconds) throws Exception {
 		Row row = this.bootSession.execute(
 				"select toTimestamp(now()) from system.local"
 		).one();
 		Instant expiredTime = row.getInstant(0).minusSeconds(seconds);
-		logger.info("deleting lock on key " + key + ", expired after " + expiredTime.toString());
+		String serializedExpiredTime = expiredTime.toString();
+		logger.info("deleting expired lock on key " + key + ", before " + serializedExpiredTime);
 		this.bootSession.execute(
 				deleteFrom(CF_NAME_LOCKS)
 						.whereColumn(CN_KEY).isEqualTo(literal(key))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
-						.whereColumn(CN_CREATED).isLessThanOrEqualTo((literal(expiredTime.toString())))
+						.whereColumn(CN_CREATED).isLessThanOrEqualTo((literal(serializedExpiredTime)))
 						.build()
 						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
+		for (int iter = 0; iter < 16; ++iter) {
+			Thread.sleep(10);
+			List<Row> rows = this.bootSession.execute(
+					selectFrom(CF_NAME_LOCKS)
+							.all()
+							.whereColumn(CN_KEY).isEqualTo(literal(key))
+							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
+							.whereColumn(CN_CREATED).isLessThanOrEqualTo((literal(serializedExpiredTime)))
+							.build()
+							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+			).all();
+			if (rows.isEmpty()) {
+				return;
+			}
+		}
+		throw new RuntimeException(String.format("Unable to delete records for  key %s, created before %s", key, serializedExpiredTime));
 	}
 
 	/*
@@ -260,7 +277,6 @@ public class InstanceDataDAOCassandra {
 	private void getLock(AppsInstance instance) throws Exception {
 		final String choosingKey = getChoosingKey(instance);
 		deleteExpired(instance, choosingKey, 6);
-		Thread.sleep(100);
 		this.bootSession.execute(
 				insertInto(CF_NAME_LOCKS)
 						.value(CN_KEY, literal(choosingKey))
@@ -277,7 +293,6 @@ public class InstanceDataDAOCassandra {
 					deleteFrom(CF_NAME_LOCKS)
 							.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
-							.value(CN_CREATED,toTimestamp(now()))
 							.build()
 							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
@@ -286,7 +301,6 @@ public class InstanceDataDAOCassandra {
 
 		final String lockKey = getLockingKey(instance);
 		deleteExpired(instance, lockKey, 600);
-		Thread.sleep(100);
 		final List<Row> preCheck = fetchRows(CF_NAME_LOCKS, CN_KEY, lockKey);
 		if (preCheck.size() > 0) {
 			boolean found = false;
