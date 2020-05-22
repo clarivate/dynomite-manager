@@ -26,33 +26,10 @@ import com.google.inject.Singleton;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
-//import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
-//import com.netflix.astyanax.connectionpool.OperationResult;
-//import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
-//import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
-//import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
-//import com.netflix.astyanax.model.*;
-//import com.netflix.astyanax.serializers.StringSerializer;
-//import com.netflix.astyanax.thrift.ThriftFamilyFactory;
+
 import software.aws.mcs.auth.SigV4AuthProvider;
 
-//import com.netflix.astyanax.AstyanaxContext;
-//import com.netflix.astyanax.ColumnListMutation;
-//import com.netflix.astyanax.Keyspace;
-//import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.Host;
-//import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
-//import com.netflix.astyanax.connectionpool.OperationResult;
-//import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
-//import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
-//import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
-//import com.netflix.astyanax.model.*;
-//import com.netflix.astyanax.serializers.StringSerializer;
-//import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import com.netflix.astyanax.util.TimeUUIDUtils;
 import com.netflix.dynomitemanager.defaultimpl.IConfiguration;
 import com.netflix.dynomitemanager.supplier.HostSupplier;
@@ -158,7 +135,6 @@ public class InstanceDataDAOCassandra {
 							//.value(CN_VOLUMES, literal(formatVolumes(instance.getVolumes())))
 							.value(CN_UPDATETIME, now())
 							.build()
-							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 		} catch (final Exception e) {
 			logger.error(e.getMessage(), e);
@@ -195,7 +171,6 @@ public class InstanceDataDAOCassandra {
 							.setColumn(CN_UPDATETIME, now())
 							.whereColumn(CN_KEY).isEqualTo(literal(key))
 							.build()
-							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 		} catch (final Exception e) {
 			logger.error(e.getMessage(), e);
@@ -294,7 +269,6 @@ public class InstanceDataDAOCassandra {
 							.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 							.build()
-							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 			throw new Exception(String.format("More than 1 contender for lock %s %d", choosingKey, count));
 		}
@@ -342,7 +316,6 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
-						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 	}
 
@@ -368,7 +341,6 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(lockKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
-						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 
 		final String choosingKey = getChoosingKey(instance);
@@ -377,7 +349,6 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
-						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 	}
 
