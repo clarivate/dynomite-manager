@@ -25,34 +25,9 @@ import com.google.inject.Singleton;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
-//import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
-//import com.netflix.astyanax.connectionpool.OperationResult;
-//import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
-//import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
-//import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
-//import com.netflix.astyanax.model.*;
-//import com.netflix.astyanax.serializers.StringSerializer;
-//import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import software.aws.mcs.auth.SigV4AuthProvider;
 
-//import com.netflix.astyanax.AstyanaxContext;
-//import com.netflix.astyanax.ColumnListMutation;
-//import com.netflix.astyanax.Keyspace;
-//import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.Host;
-//import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
-//import com.netflix.astyanax.connectionpool.OperationResult;
-//import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
-//import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
-//import com.netflix.astyanax.connectionpool.impl.CountingConnectionPoolMonitor;
-//import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
-//import com.netflix.astyanax.model.*;
-//import com.netflix.astyanax.serializers.StringSerializer;
-//import com.netflix.astyanax.thrift.ThriftFamilyFactory;
-import com.netflix.astyanax.util.TimeUUIDUtils;
 import com.netflix.dynomitemanager.defaultimpl.IConfiguration;
 import com.netflix.dynomitemanager.supplier.HostSupplier;
 
@@ -66,6 +41,7 @@ import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.deleteFrom;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.now;
+import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.toTimestamp;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.selectFrom;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.update;
 
@@ -86,6 +62,7 @@ public class InstanceDataDAOCassandra {
 	private String CN_LOCATION = "location";
 	private String CN_VOLUME_PREFIX = "ssVolumes";
 	private String CN_UPDATETIME = "updatetime";
+	private String CN_CREATED = "created";
 	private static final String CF_NAME_TOKENS = "tokens";
 	private static final String CF_NAME_LOCKS = "locks";
 
@@ -155,6 +132,7 @@ public class InstanceDataDAOCassandra {
 							//.value(CN_VOLUMES, literal(formatVolumes(instance.getVolumes())))
 							.value(CN_UPDATETIME, now())
 							.build()
+							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 		} catch (final Exception e) {
 			logger.error(e.getMessage(), e);
@@ -231,6 +209,60 @@ public class InstanceDataDAOCassandra {
 	}
 
 	/*
+
+	// use this method if rowCount is not implemented
+
+	private long rowCount(final String table, final String keyColumn, final String key) {
+		List<Row> rows = this.bootSession.execute(
+				selectFrom(table)
+						.all()
+						.whereColumn(keyColumn).isEqualTo(literal(key))
+						.build()
+		).all();
+		return rows != null ? rows.size() : 0;
+	}
+	 */
+
+	/*
+
+	// uncomment this method if TTL is not implemented
+
+	private void deleteExpired(AppsInstance instance, String key, int seconds) throws Exception {
+		Row row = this.bootSession.execute(
+				"select toTimestamp(now()) from system.local"
+		).one();
+		Instant expiredTime = row.getInstant(0).minusSeconds(seconds);
+		String serializedExpiredTime = expiredTime.toString();
+		logger.info("deleting expired lock on key " + key + ", before " + serializedExpiredTime);
+		this.bootSession.execute(
+				deleteFrom(CF_NAME_LOCKS)
+						.whereColumn(CN_KEY).isEqualTo(literal(key))
+						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
+						.whereColumn(CN_CREATED).isLessThanOrEqualTo((literal(serializedExpiredTime)))
+						.build()
+						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+		);
+		for (int iter = 0; iter < 16; ++iter) {
+			Thread.sleep(10);
+			List<Row> rows = this.bootSession.execute(
+					selectFrom(CF_NAME_LOCKS)
+							.all()
+							.whereColumn(CN_KEY).isEqualTo(literal(key))
+							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
+							.whereColumn(CN_CREATED).isLessThanOrEqualTo((literal(serializedExpiredTime)))
+							.build()
+							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+			).all();
+			if (rows.isEmpty()) {
+				return;
+			}
+		}
+		throw new RuntimeException(String.format("Unable to delete records for  key %s, created before %s", key, serializedExpiredTime));
+	}
+
+	 */
+
+	/*
 	 * To get a lock on the row - Create a choosing row and make sure there are
 	 * no contenders. If there are bail out. Also delete the column when bailing
 	 * out. - Once there are no contenders, grab the lock if it is not already
@@ -239,10 +271,13 @@ public class InstanceDataDAOCassandra {
 	private void getLock(AppsInstance instance) throws Exception {
 		final String choosingKey = getChoosingKey(instance);
 
+		// uncomment if TTL is not implemented
+		// deleteExpired(instance, choosingKey, 6);
 		this.bootSession.execute(
 				insertInto(CF_NAME_LOCKS)
 						.value(CN_KEY, literal(choosingKey))
 						.value(CN_INSTANCEID, literal(instance.getInstanceId()))
+						.value(CN_CREATED,toTimestamp(now()))
 						.usingTtl(6)
 						.build()
 						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
@@ -255,11 +290,16 @@ public class InstanceDataDAOCassandra {
 							.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 							.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 							.build()
+							.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 			);
 			throw new Exception(String.format("More than 1 contender for lock %s %d", choosingKey, count));
 		}
 
 		final String lockKey = getLockingKey(instance);
+
+		// uncomment if TTL is not implemented
+		//deleteExpired(instance, lockKey, 600);
+
 		final List<Row> preCheck = fetchRows(CF_NAME_LOCKS, CN_KEY, lockKey);
 		if (preCheck.size() > 0) {
 			boolean found = false;
@@ -278,6 +318,7 @@ public class InstanceDataDAOCassandra {
 				insertInto(CF_NAME_LOCKS)
 						.value(CN_KEY, literal(lockKey))
 						.value(CN_INSTANCEID, literal(instance.getInstanceId()))
+						.value(CN_CREATED,toTimestamp(now()))
 						.usingTtl(600)
 						.build()
 						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
@@ -301,6 +342,7 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
+						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 	}
 
@@ -326,6 +368,7 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(lockKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
+						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 
 		final String choosingKey = getChoosingKey(instance);
@@ -334,6 +377,7 @@ public class InstanceDataDAOCassandra {
 						.whereColumn(CN_KEY).isEqualTo(literal(choosingKey))
 						.whereColumn(CN_INSTANCEID).isEqualTo(literal(instance.getInstanceId()))
 						.build()
+						.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 		);
 	}
 
@@ -446,22 +490,24 @@ public class InstanceDataDAOCassandra {
 		logger.info("cassandra datacenter: " + datacenter);
 		logger.info("cassandra keyspace: " + KS_NAME);
 		logger.info("cassandra port: " + cassandraPort);
+		logger.info("Amazon Keyspaces enabled:" + config.isAmazonKeyspacesSupplierEnabled());
 
 		if (config.isAmazonKeyspacesSupplierEnabled()) {
-			List<InetSocketAddress> contactPoints =
-					Collections.singletonList(
-							InetSocketAddress.createUnresolved(config.getCassandraSeeds(), config.getCassandraPort()));
+			String endpoint = "cassandra." + datacenter + ".amazonaws.com";
+			SigV4AuthProvider provider = new SigV4AuthProvider(datacenter);
+			List<InetSocketAddress> contactPoints = Collections.singletonList(new InetSocketAddress(endpoint, cassandraPort));
 			try {
-				return CqlSession.builder()
+				CqlSession session = CqlSession.builder()
 						.addContactPoints(contactPoints)
 						.withSslContext(SSLContext.getDefault())
-						.withAuthProvider(new SigV4AuthProvider(datacenter))
+						.withAuthProvider(provider)
 						.withLocalDatacenter(datacenter)
 						.withKeyspace(KS_NAME)
 						.build();
+				return session;
 			}
-			catch (NoSuchAlgorithmException e) {
-				logger.error("Unsupprted algorithm: ", e.getMessage());
+			catch (Exception e) {
+				logger.error("error creating cqlsession: ", e);
 				throw new RuntimeException(e);
 			}
 		}
