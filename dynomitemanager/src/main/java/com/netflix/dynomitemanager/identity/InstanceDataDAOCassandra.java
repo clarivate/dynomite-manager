@@ -58,6 +58,8 @@ public class InstanceDataDAOCassandra {
 	private String CF_NAME_TOKENS = "tokens";
 	private String CF_NAME_LOCKS = "locks";
 
+	private String KEY = "key"
+
 	private final Keyspace bootKeyspace;
 	private final IConfiguration config;
 	private final HostSupplier hostSupplier;
@@ -314,6 +316,15 @@ public class InstanceDataDAOCassandra {
 				return null;
 
 			Row<String, String> row = result.getResult().getRows().getRowByIndex(0);
+			// Fix for row.getKey() returning null. Check key available in row columns
+			if(row.getColumns() != null){
+				for(Column<String> column : row.getColumns()){
+					// if key column found then return key value.
+					if(KEY.equals(column.getName())){
+						return column.getStringValue();
+					}
+				}
+			}
 			return row.getKey();
 
 		} catch (Exception e) {
